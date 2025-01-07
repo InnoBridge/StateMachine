@@ -1,0 +1,34 @@
+services:
+
+  ############ statemachine application ############
+  statemachine_application:
+    image: openjdk:22-slim
+    container_name: statemachine-application
+    working_dir: /app
+    extra_hosts:
+      - "localhost:192.168.65.2"
+    ports:
+      - 8080:8080
+      - 5005:5005
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./local/root:/root
+    tty: true
+
+  ############ mongodb ############
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - "${MONGODB_PORT}:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+
+volumes:
+  mongodb_data:

@@ -4,5 +4,5 @@ import java.util.Map;
 import java.util.function.Function;
 
 public interface BlockingTransitionState extends State {
-    State transition(Map<State, Function<State, State>> states);
+    State transition(Map<State, Function<State, State>> transitions);
 }

@@ -1,40 +1,38 @@
 package io.github.innobridge.statemachine.state.definition;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
-import java.util.function.Function;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import lombok.Data;
+
+@Document(collection = "StateMachineInstance")
+@Data
 public class ExecutionThread {
 
-    private UUID workflowId;
-    private Optional<UUID> parentId;
-    private Set<UUID> stateIds;
+    @Id
+    private String id;
 
-    private Map<State, Function<State, State>> states;
-    
-    public UUID getWorkflowId() {
-        return workflowId;
+    private String instanceType;
+    private String parentId;
+    private Set<String> childIds;
+    private String currentState;
+
+    public Optional<String> getParentId() {
+        return Optional.ofNullable(parentId);
     }
 
-    public void setWorkflowId(UUID workflowId) {
-        this.workflowId = workflowId;
+    public void setParentId(Optional<String> parentId) {
+        this.parentId = parentId.orElse(null);
     }
 
-    public Set<UUID> getStateIds() {
-        return stateIds;
+    public Set<String> childIds() {
+        return childIds;
     }
 
-    public void setStateIds(Set<UUID> stateIds) {
-        this.stateIds = stateIds;
-    }
-
-    public Map<State, Function<State, State>> getStates() {
-        return states;
-    }
-
-    public void setStates(Map<State, Function<State, State>> states) {
-        this.states = states;
+    public void setChildIds(Set<String> childIds) {
+        this.childIds = childIds;
     }
 }
