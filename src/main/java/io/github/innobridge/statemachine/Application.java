@@ -5,7 +5,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackageClasses = {
     io.github.innobridge.statemachine.configuration.ApplicationSpecificSpringComponentScanMarker.class,
-    io.github.innobridge.statemachine.controller.ApplicationSpecificSpringComponentScanMarker.class
+    io.github.innobridge.statemachine.controller.ApplicationSpecificSpringComponentScanMarker.class,
+    io.github.innobridge.statemachine.service.ApplicationSpecificSpringComponentScanMarker.class,
+    io.github.innobridge.statemachine.repository.ApplicationSpecificSpringComponentScanMarker.class
 })
 public class Application {
 
