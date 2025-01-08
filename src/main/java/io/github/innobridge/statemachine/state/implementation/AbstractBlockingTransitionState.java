@@ -17,16 +17,19 @@ public abstract class AbstractBlockingTransitionState extends AbstractState impl
     }
 
     @Override
-    public State transition(Map<State, Function<State, State>> transitions) {
-        Function<State, State> transition = transitions.get(this);
-        return transition != null ? transition.apply(this) : this;
+    public State transition(Map<String, Function<State, State>> transitions) {
+        Function<State, State> transition = transitions.get(this.getClass().getName());
+        if (transition == null) {
+            throw new IllegalStateException("No transition found for " + this.getClass().getSimpleName());
+        }
+        return transition.apply(this);
     }
 
     @Override
-    public State processing(Map<State, Function<State, State>> transitions) {
+    public State processing(Map<String, Function<State, State>> transitions) {
         action();
-        var nextState = transition(transitions);
-        // saveState(nextState);
+        State nextState = transition(transitions);
+        System.out.println("Next state: " + nextState.getClass().getSimpleName());
         return nextState;
     }
 

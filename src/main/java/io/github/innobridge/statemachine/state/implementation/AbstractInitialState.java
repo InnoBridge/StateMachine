@@ -5,6 +5,7 @@ import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public abstract class AbstractInitialState extends AbstractState implements Init
     }
 
     @Override
-    public State transition(Map<State, Function<State, State>> transitions) {
+    public State transition(Map<String, Function<State, State>> transitions) {
         Function<State, State> transition = transitions != null ? transitions.get(this) : null;
         return transition != null ? transition.apply(this) : this;
     }
@@ -52,12 +53,18 @@ public abstract class AbstractInitialState extends AbstractState implements Init
     }
 
     @Override
-    public Map<State, Function<State, State>> getTransitions() {
-        return transitions;
+    public Map<String, Function<State, State>> getTransitions() {
+        Map<String, Function<State, State>> result = new HashMap<>();
+        transitions.forEach(
+            (key, value) -> {
+                result.put(key.getClass().getName(), value);
+            }
+        );
+        return result;
     }
 
     @Override
-    public State processing(Map<State, Function<State, State>> states) {
+    public State processing(Map<String, Function<State, State>> states) {
         action();
         State nextState = transition(states);
         nextState.setInstanceId(getInstanceId());

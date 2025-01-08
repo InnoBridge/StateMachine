@@ -23,12 +23,9 @@ public class StateMachineService {
     
     public String createStateMachine(InitialState initialState) {
         ExecutionThread thread = initialState.createThread();
-        System.out.println("Thread id: " + thread.getId());
         executionThreadRepository.save(thread); 
         initialState.setInstanceId(thread.getId());
-        System.out.println("initial state instance id: " + initialState.getInstanceId());
         State nextState = initialState.processing(initialState.getTransitions());
-        System.out.println("next state instance id: " + nextState.getInstanceId());
         stateRepository.save((AbstractState) nextState);
         return thread.getId();
     }
@@ -50,7 +47,7 @@ public class StateMachineService {
     public String processStateMachine(String instanceId) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
-        State currentState = getState(instanceId, initialState);
+        State currentState = getState(instanceId, thread.getCurrentState());
         System.out.println("Current state: " + currentState.getClass().getSimpleName());
         AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions());
         thread.setCurrentState(nextState.getClass().getName());
@@ -63,12 +60,16 @@ public class StateMachineService {
         return executionThreadRepository.findById(instanceId).get();
     }
 
+    public State getState(String instanceId, String stateClassName) {
+        List<AbstractState> states = stateRepository.findByInstanceIdAndClass(instanceId, stateClassName);
+        if (states.isEmpty()) {
+            throw new IllegalStateException("No state found for instanceId " + instanceId);
+        }
+        return states.get(0);
+    }
+
     public State getState(String instanceId, State state) {
-         List<AbstractState> states = stateRepository.findByInstanceId(instanceId);
-         if (states.isEmpty()) {
-             throw new IllegalStateException("No state found for instanceId " + instanceId);
-         }
-         return states.get(0);
+        return getState(instanceId, state.getClass().getSimpleName());
     }
 
     // JsonNode getState(String instanceId, State state) {

@@ -6,11 +6,11 @@ import java.util.function.Function;
 
 public interface InitialState extends State {
     UUID generateId();
-    State transition(Map<State, Function<State, State>> transitions);
+    State transition(Map<String, Function<State, State>> transitions);
     ExecutionThread createThread(String parentId);
     default ExecutionThread createThread() {
         return createThread(null);
     }
-    Map<State, Function<State, State>> getTransitions();
+    Map<String, Function<State, State>> getTransitions();
     void setTransitions();
 }

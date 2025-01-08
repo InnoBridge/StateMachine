@@ -18,7 +18,7 @@ public abstract class AbstractState implements State {
     public abstract void action();
 
     @Override
-    public abstract State processing(Map<State, Function<State, State>> transitions);
+    public abstract State processing(Map<String, Function<State, State>> transitions);
 
     public String getId() {
         return id;
