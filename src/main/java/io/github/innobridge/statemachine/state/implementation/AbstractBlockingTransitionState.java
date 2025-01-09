@@ -29,7 +29,7 @@ public abstract class AbstractBlockingTransitionState extends AbstractState impl
     public State processing(Map<String, Function<State, State>> transitions) {
         action();
         State nextState = transition(transitions);
-        System.out.println("Next state: " + nextState.getClass().getSimpleName());
+        nextState.setInstanceId(getInstanceId());
         return nextState;
     }
 

@@ -17,8 +17,16 @@ public abstract class AbstractState implements State {
     @Override
     public abstract void action();
 
+    public abstract State transition(Map<String, Function<State, State>> transitions);
+    
     @Override
-    public abstract State processing(Map<String, Function<State, State>> transitions);
+    public State processing(Map<String, Function<State, State>> transitions) {
+        action();
+        System.out.println("what happened");
+        State nextState = transition(transitions);
+        nextState.setInstanceId(getInstanceId());
+        return nextState;    
+    }
 
     public String getId() {
         return id;

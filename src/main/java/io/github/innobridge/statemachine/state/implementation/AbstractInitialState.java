@@ -34,7 +34,7 @@ public abstract class AbstractInitialState extends AbstractState implements Init
 
     @Override
     public State transition(Map<String, Function<State, State>> transitions) {
-        Function<State, State> transition = transitions != null ? transitions.get(this) : null;
+        Function<State, State> transition = transitions != null ? transitions.get(this.getClass().getName()) : null;
         return transition != null ? transition.apply(this) : this;
     }
 
