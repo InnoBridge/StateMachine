@@ -14,4 +14,7 @@ public interface StateRepository extends MongoRepository<AbstractState, String> 
     List<AbstractState> findByInstanceId(String instanceId);
     @Query("{ 'instanceId' : ?0, '_class' : ?1 }")
     List<AbstractState> findByInstanceIdAndClass(String instanceId, String className);
+
+    @Query(value = "{ 'instanceId' : ?0 }", delete = true)
+    void deleteByInstanceId(String instanceId);
 }
