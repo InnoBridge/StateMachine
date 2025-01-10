@@ -33,4 +33,8 @@ public abstract class AbstractBlockingTransitionState extends AbstractState impl
         return nextState;
     }
 
+    @Override
+    public boolean isBlocking() {
+        return true;
+    }
 }

@@ -8,5 +8,4 @@ public class TerminalHelloWorld extends AbstractTerminalState {
     public void action() {
         System.out.println("Terminating Hello World");
     }
-
 }

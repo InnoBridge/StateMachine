@@ -30,5 +30,19 @@ services:
       - MONGO_INITDB_ROOT_USERNAME=${MONGODB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
 
+  ############ rabbitmq ############
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # AMQP protocol port
+      - "15672:15672" # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
   mongodb_data:
+  rabbitmq_data:
