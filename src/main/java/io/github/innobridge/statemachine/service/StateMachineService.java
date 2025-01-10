@@ -73,7 +73,6 @@ public class StateMachineService {
         AbstractState nextState = (AbstractState) currentState.processing(transitions);
         thread.setCurrentState(nextState.getClass().getName());
         executionThreadRepository.save(thread);
-        stateRepository.save(nextState);
         return thread.getId();
     }
 
