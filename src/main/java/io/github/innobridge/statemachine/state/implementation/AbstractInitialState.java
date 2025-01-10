@@ -70,4 +70,9 @@ public abstract class AbstractInitialState extends AbstractState implements Init
         nextState.setInstanceId(getInstanceId());
         return nextState;
     } 
+
+    @Override
+    public boolean isBlocking() {
+        return false;
+    }
 }

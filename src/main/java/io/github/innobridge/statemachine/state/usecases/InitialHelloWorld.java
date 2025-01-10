@@ -16,7 +16,8 @@ public class InitialHelloWorld extends AbstractInitialState {
     @Override
     public void setTransitions() {
         Map<State, Function<State, State>> transitions = new HashMap<>();
-        transitions.put(this, state -> new HelloWorld());
+        transitions.put(this, state -> new NonBlockingHelloWorld());
+        transitions.put(new NonBlockingHelloWorld(), state -> new HelloWorld());
         transitions.put(new HelloWorld(), state -> new TerminalHelloWorld());
         this.transitions = transitions;
     }

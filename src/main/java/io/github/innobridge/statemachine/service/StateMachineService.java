@@ -7,10 +7,12 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.github.innobridge.statemachine.publisher.RabbitMQProducer;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
 import io.github.innobridge.statemachine.repository.StateRepository;
 import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
+import io.github.innobridge.statemachine.state.definition.NonBlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
@@ -24,6 +26,9 @@ public class StateMachineService {
 
     @Autowired
     private StateRepository stateRepository;
+
+    @Autowired
+    private RabbitMQProducer rabbitMQProducer;
     
     public String createStateMachine(InitialState initialState) {
         ExecutionThread thread = initialState.createThread();
@@ -32,6 +37,9 @@ public class StateMachineService {
         State nextState = initialState.processing(initialState.getTransitions());
         System.out.println("Next state: " + nextState.getClass().getSimpleName());
         stateRepository.save((AbstractState) nextState);
+        if (!nextState.isBlocking()) {
+            rabbitMQProducer.sendMessage(thread.getId()); 
+        } 
         return thread.getId();
     }
 
@@ -54,26 +62,30 @@ public class StateMachineService {
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
         System.out.println("Current state: " + currentState.getClass().getSimpleName());
+        if (currentState instanceof TerminalState) {
+            return processTerminalState(thread);
+        }  
+        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions());
+        String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
-                return processBlockingTransitionState(blockingState, thread, initialState.getTransitions());
-            }
-            case TerminalState terminalState -> {
-                return processTerminalState(thread);
+                result = processBlockingTransitionState(nextState, thread);
             }
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
+        if (!nextState.isBlocking()) {
+            rabbitMQProducer.sendMessage(thread.getId()); 
+        }
+        return result;
     }
 
     private String processBlockingTransitionState(
-        BlockingTransitionState currentState, 
-        ExecutionThread thread, 
-        Map<String, Function<State, State>> transitions
+        AbstractState nextState,
+        ExecutionThread thread 
     ) {
-        AbstractState nextState = (AbstractState) currentState.processing(transitions);
+        stateRepository.save(nextState);
         thread.setCurrentState(nextState.getClass().getName());
         executionThreadRepository.save(thread);
-        stateRepository.save(nextState);
         return thread.getId();
     }
 
