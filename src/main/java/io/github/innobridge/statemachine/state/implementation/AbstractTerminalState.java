@@ -21,4 +21,9 @@ public abstract class AbstractTerminalState extends AbstractState implements Ter
         return this;
     }
 
+    @Override
+    public boolean isBlocking() {
+        return false;
+    }
+
 }

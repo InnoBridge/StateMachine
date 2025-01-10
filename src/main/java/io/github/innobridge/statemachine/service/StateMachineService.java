@@ -7,10 +7,12 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.github.innobridge.statemachine.publisher.RabbitMQProducer;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
 import io.github.innobridge.statemachine.repository.StateRepository;
 import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
+import io.github.innobridge.statemachine.state.definition.NonBlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
@@ -24,6 +26,9 @@ public class StateMachineService {
 
     @Autowired
     private StateRepository stateRepository;
+
+    @Autowired
+    private RabbitMQProducer rabbitMQProducer;
     
     public String createStateMachine(InitialState initialState) {
         ExecutionThread thread = initialState.createThread();
@@ -71,8 +76,12 @@ public class StateMachineService {
         Map<String, Function<State, State>> transitions
     ) {
         AbstractState nextState = (AbstractState) currentState.processing(transitions);
+        stateRepository.save(nextState);
         thread.setCurrentState(nextState.getClass().getName());
         executionThreadRepository.save(thread);
+        if (!nextState.isBlocking()) {
+            rabbitMQProducer.sendMessage(thread.getId()); 
+        }
         return thread.getId();
     }
 
