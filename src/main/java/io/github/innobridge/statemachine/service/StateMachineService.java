@@ -37,6 +37,9 @@ public class StateMachineService {
         State nextState = initialState.processing(initialState.getTransitions());
         System.out.println("Next state: " + nextState.getClass().getSimpleName());
         stateRepository.save((AbstractState) nextState);
+        if (!nextState.isBlocking()) {
+            rabbitMQProducer.sendMessage(thread.getId()); 
+        } 
         return thread.getId();
     }
 
@@ -59,29 +62,30 @@ public class StateMachineService {
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
         System.out.println("Current state: " + currentState.getClass().getSimpleName());
+        if (currentState instanceof TerminalState) {
+            return processTerminalState(thread);
+        }  
+        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions());
+        String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
-                return processBlockingTransitionState(blockingState, thread, initialState.getTransitions());
-            }
-            case TerminalState terminalState -> {
-                return processTerminalState(thread);
+                result = processBlockingTransitionState(nextState, thread);
             }
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
-    }
-
-    private String processBlockingTransitionState(
-        BlockingTransitionState currentState, 
-        ExecutionThread thread, 
-        Map<String, Function<State, State>> transitions
-    ) {
-        AbstractState nextState = (AbstractState) currentState.processing(transitions);
-        stateRepository.save(nextState);
-        thread.setCurrentState(nextState.getClass().getName());
-        executionThreadRepository.save(thread);
         if (!nextState.isBlocking()) {
             rabbitMQProducer.sendMessage(thread.getId()); 
         }
+        return result;
+    }
+
+    private String processBlockingTransitionState(
+        AbstractState nextState,
+        ExecutionThread thread 
+    ) {
+        stateRepository.save(nextState);
+        thread.setCurrentState(nextState.getClass().getName());
+        executionThreadRepository.save(thread);
         return thread.getId();
     }
 
