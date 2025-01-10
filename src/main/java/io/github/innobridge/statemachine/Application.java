@@ -8,7 +8,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
     io.github.innobridge.statemachine.controller.ApplicationSpecificSpringComponentScanMarker.class,
     io.github.innobridge.statemachine.service.ApplicationSpecificSpringComponentScanMarker.class,
     io.github.innobridge.statemachine.repository.ApplicationSpecificSpringComponentScanMarker.class,
-    io.github.innobridge.statemachine.publisher.ApplicationSpecificSpringComponentScanMarker.class
+    io.github.innobridge.statemachine.publisher.ApplicationSpecificSpringComponentScanMarker.class,
+    io.github.innobridge.statemachine.consumer.ApplicationSpecificSpringComponentScanMarker.class
 })
 public class Application {
 
