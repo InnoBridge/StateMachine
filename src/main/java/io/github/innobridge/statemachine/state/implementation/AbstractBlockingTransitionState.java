@@ -5,16 +5,14 @@ import io.github.innobridge.statemachine.state.definition.State;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 @Document(collection = "States")
 public abstract class AbstractBlockingTransitionState extends AbstractState implements BlockingTransitionState {
-
-    @Override
-    public void action() {
-        // Implement blocking transition state action
-    }
 
     @Override
     public State transition(Map<String, Function<State, State>> transitions) {
@@ -26,8 +24,8 @@ public abstract class AbstractBlockingTransitionState extends AbstractState impl
     }
 
     @Override
-    public State processing(Map<String, Function<State, State>> transitions) {
-        action();
+    public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
+        action(input);
         State nextState = transition(transitions);
         nextState.setInstanceId(getInstanceId());
         return nextState;

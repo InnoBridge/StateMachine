@@ -10,10 +10,5 @@ public abstract class AbstractNonBlockingTransitionState extends AbstractBlockin
     public boolean isBlocking() {
         return false;
     }
-    
-    @Override
-    public void enqueue() {
-        // Implement enqueue logic for non-blocking transition
-    }
-    
+     
 }

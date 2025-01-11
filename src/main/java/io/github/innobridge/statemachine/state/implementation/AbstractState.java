@@ -3,10 +3,13 @@ package io.github.innobridge.statemachine.state.implementation;
 import io.github.innobridge.statemachine.state.definition.State;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 @Document(collection = "States")
 public abstract class AbstractState implements State {
@@ -14,14 +17,11 @@ public abstract class AbstractState implements State {
     private String id;
     private String instanceId; 
     
-    @Override
-    public abstract void action();
-
     public abstract State transition(Map<String, Function<State, State>> transitions);
     
     @Override
-    public State processing(Map<String, Function<State, State>> transitions) {
-        action();
+    public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
+        action(input);
         System.out.println("what happened");
         State nextState = transition(transitions);
         nextState.setInstanceId(getInstanceId());

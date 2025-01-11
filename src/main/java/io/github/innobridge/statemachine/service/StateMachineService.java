@@ -2,10 +2,13 @@ package io.github.innobridge.statemachine.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.github.innobridge.statemachine.publisher.RabbitMQProducer;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
@@ -58,6 +61,10 @@ public class StateMachineService {
     }
 
     public String processStateMachine(String instanceId) {
+        return processStateMachine(instanceId, Optional.empty());
+    }
+
+    public String processStateMachine(String instanceId, Optional<JsonNode> input) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
@@ -65,7 +72,7 @@ public class StateMachineService {
         if (currentState instanceof TerminalState) {
             return processTerminalState(thread);
         }  
-        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions());
+        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {

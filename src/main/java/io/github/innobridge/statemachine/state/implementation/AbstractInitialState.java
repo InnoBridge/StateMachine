@@ -5,6 +5,8 @@ import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,11 +22,6 @@ public abstract class AbstractInitialState extends AbstractState implements Init
     public AbstractInitialState() {
         super();
         setTransitions();
-    }
-
-    @Override
-    public void action() {
-        // Implement initial state action
     }
 
     @Override
@@ -64,8 +61,8 @@ public abstract class AbstractInitialState extends AbstractState implements Init
     }
 
     @Override
-    public State processing(Map<String, Function<State, State>> states) {
-        action();
+    public State processing(Map<String, Function<State, State>> states, Optional<JsonNode> input) {
+        action(input);
         State nextState = transition(states);
         nextState.setInstanceId(getInstanceId());
         return nextState;

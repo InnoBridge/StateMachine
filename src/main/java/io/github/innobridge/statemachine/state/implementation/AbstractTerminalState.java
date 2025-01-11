@@ -12,11 +12,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public abstract class AbstractTerminalState extends AbstractState implements TerminalState {
  
     @Override
-    public void action() {
-        // Implement terminal state action
-    }
-
-    @Override
     public State transition(Map<String, Function<State, State>> transitions) {
         return this;
     }

@@ -6,10 +6,10 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class NonBlockingHelloWorld extends AbstractNonBlockingTransitionState {
+public class WhatIsYourName extends AbstractNonBlockingTransitionState {
     
     @Override
     public void action(Optional<JsonNode> input) {
-        System.out.println("Non BlockingHello World");
+        System.out.println("What is your name?");
     } 
 }
