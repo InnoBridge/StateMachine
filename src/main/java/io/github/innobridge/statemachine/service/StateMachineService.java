@@ -2,10 +2,13 @@ package io.github.innobridge.statemachine.service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.github.innobridge.statemachine.publisher.RabbitMQProducer;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
@@ -30,11 +33,12 @@ public class StateMachineService {
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
     
-    public String createStateMachine(InitialState initialState) {
+    public String createStateMachine(InitialState initialState, Optional<JsonNode> input) {
+        System.out.println("Initial state: " + initialState.getClass().getSimpleName());
         ExecutionThread thread = initialState.createThread();
         executionThreadRepository.save(thread); 
         initialState.setInstanceId(thread.getId());
-        State nextState = initialState.processing(initialState.getTransitions());
+        State nextState = initialState.processing(initialState.getTransitions(), input);
         System.out.println("Next state: " + nextState.getClass().getSimpleName());
         stateRepository.save((AbstractState) nextState);
         if (!nextState.isBlocking()) {
@@ -58,6 +62,10 @@ public class StateMachineService {
     }
 
     public String processStateMachine(String instanceId) {
+        return processStateMachine(instanceId, Optional.empty());
+    }
+
+    public String processStateMachine(String instanceId, Optional<JsonNode> input) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
@@ -65,7 +73,7 @@ public class StateMachineService {
         if (currentState instanceof TerminalState) {
             return processTerminalState(thread);
         }  
-        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions());
+        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
