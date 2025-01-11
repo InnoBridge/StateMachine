@@ -21,8 +21,11 @@ public class InitialHelloWorld extends AbstractInitialState {
         Map<State, Function<State, State>> transitions = new HashMap<>();
         transitions.put(this, state -> new WhatIsYourName());
         transitions.put(new WhatIsYourName(), state -> new HelloWorld());
-        transitions.put(new HelloWorld(), state -> new NonBlockingHelloWorld());
-        transitions.put(new NonBlockingHelloWorld(), state -> new TerminalHelloWorld());
+        transitions.put(new HelloWorld(), state -> {
+            HelloWorld helloWorld = (HelloWorld) state;
+            return new NonBlockingHelloWorld(helloWorld.getName());
+        });
+        transitions.put(new NonBlockingHelloWorld(null), state -> new TerminalHelloWorld());
         this.transitions = transitions;
     }
 }
