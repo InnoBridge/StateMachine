@@ -33,11 +33,12 @@ public class StateMachineService {
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
     
-    public String createStateMachine(InitialState initialState) {
+    public String createStateMachine(InitialState initialState, Optional<JsonNode> input) {
+        System.out.println("Initial state: " + initialState.getClass().getSimpleName());
         ExecutionThread thread = initialState.createThread();
         executionThreadRepository.save(thread); 
         initialState.setInstanceId(thread.getId());
-        State nextState = initialState.processing(initialState.getTransitions());
+        State nextState = initialState.processing(initialState.getTransitions(), input);
         System.out.println("Next state: " + nextState.getClass().getSimpleName());
         stateRepository.save((AbstractState) nextState);
         if (!nextState.isBlocking()) {

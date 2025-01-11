@@ -28,8 +28,10 @@ public class StateMachineController {
     }
 
     @PostMapping("/create/helloworld")
-    public String createHelloWorld() {
-        return stateMachineService.createStateMachine(new InitialHelloWorld());
+    public String createHelloWorld(
+            @RequestBody(required = false) JsonNode input
+    ) {
+        return stateMachineService.createStateMachine(new InitialHelloWorld(), Optional.ofNullable(input));
     }
 
     @PostMapping("/process")
