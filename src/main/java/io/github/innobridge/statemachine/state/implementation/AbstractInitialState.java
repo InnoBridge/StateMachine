@@ -30,12 +30,6 @@ public abstract class AbstractInitialState extends AbstractState implements Init
     }
 
     @Override
-    public State transition(Map<String, Function<State, State>> transitions) {
-        Function<State, State> transition = transitions != null ? transitions.get(this.getClass().getName()) : null;
-        return transition != null ? transition.apply(this) : this;
-    }
-
-    @Override
     public ExecutionThread createThread(String parentId) {
         ExecutionThread thread = new ExecutionThread();
         thread.setId(generateId().toString());
@@ -43,7 +37,6 @@ public abstract class AbstractInitialState extends AbstractState implements Init
         if (parentId != null) {
             thread.setParentId(Optional.of(parentId));
         }
-        thread.setChildIds(new HashSet<>());
         State nextState = processing(getTransitions());
         thread.setCurrentState(nextState.getClass().getName());
         return thread;

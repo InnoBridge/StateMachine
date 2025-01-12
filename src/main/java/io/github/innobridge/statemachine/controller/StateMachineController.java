@@ -31,7 +31,7 @@ public class StateMachineController {
     public String createHelloWorld(
             @RequestBody(required = false) JsonNode input
     ) {
-        return stateMachineService.createStateMachine(new InitialHelloWorld(), Optional.ofNullable(input));
+        return stateMachineService.createStateMachine(new InitialHelloWorld(), Optional.ofNullable(input), Optional.empty());
     }
 
     @PostMapping("/process")

@@ -15,7 +15,6 @@ import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
 import io.github.innobridge.statemachine.repository.StateRepository;
 import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
-import io.github.innobridge.statemachine.state.definition.NonBlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
@@ -33,9 +32,9 @@ public class StateMachineService {
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
     
-    public String createStateMachine(InitialState initialState, Optional<JsonNode> input) {
+    public String createStateMachine(InitialState initialState, Optional<JsonNode> input, Optional<String> parentId) {
         System.out.println("Initial state: " + initialState.getClass().getSimpleName());
-        ExecutionThread thread = initialState.createThread();
+        ExecutionThread thread = initialState.createThread(parentId.orElse(null));
         executionThreadRepository.save(thread); 
         initialState.setInstanceId(thread.getId());
         State nextState = initialState.processing(initialState.getTransitions(), input);
