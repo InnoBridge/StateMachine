@@ -23,11 +23,5 @@ public interface ChildState extends State {
         throw new UnsupportedOperationException("ChildState must use processing with ExecutionThreadRepository");
     }
 
-
-    void setChildInstances(List<InitialState> childInstances);
-
-    List<InitialState> getChildInstances();
-
     List<InitialState> registerChildInstances();
-
 }

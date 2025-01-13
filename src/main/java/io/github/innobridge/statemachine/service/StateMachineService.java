@@ -18,6 +18,7 @@ import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
+import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.implementation.AbstractState;
 
 @Service
@@ -72,11 +73,19 @@ public class StateMachineService {
         if (currentState instanceof TerminalState) {
             return processTerminalState(thread);
         }  
-        AbstractState nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
+        AbstractState nextState;
+        if (currentState instanceof ChildState childState) {
+            nextState = (AbstractState) childState.processing(initialState.getTransitions(), input, executionThreadRepository, this);
+        } else {
+            nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
+        }        
         String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
                 result = processBlockingTransitionState(nextState, thread);
+            }
+            case ChildState childState -> {
+                result = processChildState(nextState, thread);
             }
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
@@ -96,9 +105,22 @@ public class StateMachineService {
         return thread.getId();
     }
 
+    private String processChildState(
+        AbstractState nextState,
+        ExecutionThread thread
+    ) {
+        stateRepository.save(nextState);
+        thread.setCurrentState(nextState.getClass().getName());
+        executionThreadRepository.save(thread);
+        return thread.getId();
+    }
+
     private String processTerminalState(ExecutionThread thread) {
         stateRepository.deleteByInstanceId(thread.getId());
         executionThreadRepository.deleteById(thread.getId());
+        if (thread.getParentId().isPresent()) {
+            rabbitMQProducer.sendMessage(thread.getParentId().get());
+        }
         return thread.getId();
     }
 

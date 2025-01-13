@@ -20,7 +20,6 @@ public abstract class AbstractState implements State {
     @Override
     public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
         action(input);
-        System.out.println("what happened");
         State nextState = transition(transitions);
         nextState.setInstanceId(getInstanceId());
         return nextState;    
