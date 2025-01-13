@@ -1,0 +1,55 @@
+package io.github.innobridge.statemachine.listener;
+
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventListener;
+import org.springframework.data.mongodb.core.mapping.event.AfterSaveEvent;
+import org.springframework.stereotype.Component;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.github.innobridge.statemachine.state.definition.State;
+import io.github.innobridge.statemachine.state.implementation.AbstractState;
+import io.github.innobridge.statemachine.configuration.RepositoryConfig;
+
+@Component
+public class StateChangeListener extends AbstractMongoEventListener<AbstractState> {
+    
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private RepositoryConfig repositoryConfig;
+
+    @Override
+    public void onAfterSave(AfterSaveEvent<AbstractState> event) {
+        if (!repositoryConfig.isHistoryEnabled()) {
+            return;
+        }
+        
+        AbstractState state = event.getSource();
+        // Create a copy for history without the _id field
+        AbstractState historyCopy = new AbstractState() {
+            @Override
+            public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
+                return null; // Not needed for history
+            }
+
+            @Override
+            public void action(Optional<JsonNode> input) {
+                // Not needed for history
+            }
+
+            @Override
+            public boolean isBlocking() {
+                return state.isBlocking();
+            }
+        };
+        historyCopy.setInstanceId(state.getInstanceId());
+        mongoTemplate.insert(historyCopy, "History");
+    }
+}
