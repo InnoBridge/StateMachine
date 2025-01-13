@@ -17,7 +17,6 @@ public class ExecutionThread {
 
     private String instanceType;
     private String parentId;
-    private Set<String> childIds;
     private String currentState;
 
     public Optional<String> getParentId() {
@@ -28,11 +27,4 @@ public class ExecutionThread {
         this.parentId = parentId.orElse(null);
     }
 
-    public Set<String> childIds() {
-        return childIds;
-    }
-
-    public void setChildIds(Set<String> childIds) {
-        this.childIds = childIds;
-    }
 }

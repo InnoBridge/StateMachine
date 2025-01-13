@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public interface State {
    void action(Optional<JsonNode> input); 
+   State transition(Map<String, Function<State, State>> transitions);
    State processing(Map<String, Function<State, State>> states, Optional<JsonNode> input);
    default State processing(Map<String, Function<State, State>> states) {
        return processing(states, Optional.empty());

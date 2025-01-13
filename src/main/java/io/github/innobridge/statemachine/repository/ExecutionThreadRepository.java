@@ -6,4 +6,5 @@ import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 
 public interface ExecutionThreadRepository extends MongoRepository<ExecutionThread, String> {
     
+    boolean existsByIdIn(Iterable<String> ids);
 }

@@ -14,14 +14,6 @@ import java.util.function.Function;
 @Document(collection = "States")
 public abstract class AbstractBlockingTransitionState extends AbstractState implements BlockingTransitionState {
 
-    @Override
-    public State transition(Map<String, Function<State, State>> transitions) {
-        Function<State, State> transition = transitions.get(this.getClass().getName());
-        if (transition == null) {
-            throw new IllegalStateException("No transition found for " + this.getClass().getSimpleName());
-        }
-        return transition.apply(this);
-    }
 
     @Override
     public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {

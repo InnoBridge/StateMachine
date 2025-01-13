@@ -15,25 +15,23 @@ import com.fasterxml.jackson.databind.JsonNode;
 public abstract class AbstractState implements State {
     @Id
     private String id;
-    private String instanceId; 
-    
-    public abstract State transition(Map<String, Function<State, State>> transitions);
-    
+    public String instanceId; 
+
     @Override
     public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
         action(input);
-        System.out.println("what happened");
         State nextState = transition(transitions);
         nextState.setInstanceId(getInstanceId());
         return nextState;    
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    @Override
+    public State transition(Map<String, Function<State, State>> transitions) {
+        Function<State, State> transition = transitions.get(this.getClass().getName());
+        if (transition == null) {
+            throw new IllegalStateException("No transition found for " + this.getClass().getSimpleName());
+        }
+        return transition.apply(this);
     }
 
     @Override
@@ -46,4 +44,11 @@ public abstract class AbstractState implements State {
         this.instanceId = instanceId;
     }
 
-}
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+  }

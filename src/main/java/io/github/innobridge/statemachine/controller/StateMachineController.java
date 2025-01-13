@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import io.github.innobridge.statemachine.service.StateMachineService;
 import io.github.innobridge.statemachine.state.usecases.InitialHelloWorld;
+import io.github.innobridge.statemachine.state.usecases.childinstances.InitialMeal;
 
 import java.util.Optional;
 
@@ -31,7 +32,14 @@ public class StateMachineController {
     public String createHelloWorld(
             @RequestBody(required = false) JsonNode input
     ) {
-        return stateMachineService.createStateMachine(new InitialHelloWorld(), Optional.ofNullable(input));
+        return stateMachineService.createStateMachine(new InitialHelloWorld(), Optional.ofNullable(input), Optional.empty());
+    }
+
+    @PostMapping("/create/meal")
+    public String createMeal(
+            @RequestBody(required = false) JsonNode input
+    ) {
+        return stateMachineService.createStateMachine(new InitialMeal(), Optional.ofNullable(input), Optional.empty());
     }
 
     @PostMapping("/process")
