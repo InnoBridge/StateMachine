@@ -40,7 +40,9 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);
-            setBlocking(true);
+            if (!childIds.isEmpty()) {
+                setBlocking(true);
+            }
             return this;
         }
         if (completedChildInstances(childIds, executionThreadRepository)) {
