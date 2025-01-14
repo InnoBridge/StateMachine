@@ -1,7 +1,6 @@
 package io.github.innobridge.statemachine.state.definition;
 
 import java.util.Optional;
-import java.util.Set;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

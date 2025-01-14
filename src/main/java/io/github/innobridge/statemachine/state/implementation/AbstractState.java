@@ -51,4 +51,4 @@ public abstract class AbstractState implements State {
     public void setId(String id) {
         this.id = id;
     }
-  }
+}

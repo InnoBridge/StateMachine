@@ -24,12 +24,14 @@ public class StateMachineService {
 
     @Autowired
     private ExecutionThreadRepository executionThreadRepository;
-
     @Autowired
     private StateRepository stateRepository;
-
+    
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
+
+    public StateMachineService() {
+    }
     
     public String createStateMachine(InitialState initialState, Optional<JsonNode> input, Optional<String> parentId) {
         System.out.println("Initial state: " + initialState.getClass().getSimpleName());
@@ -135,7 +137,7 @@ public class StateMachineService {
     }
 
     private State getState(String instanceId, State state) {
-        return getState(instanceId, state.getClass().getSimpleName());
+        return getState(instanceId, state.getClass().getName());
     }
 
     // JsonNode getState(String instanceId, State state) {
