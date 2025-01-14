@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.innobridge</groupId>
 	<artifactId>statemachine</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1-SNAPSHOT-11</version>
 	<name>Application</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -54,17 +54,17 @@
 		</dependency>
 
 		<!-- Test Dependencies -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
+		<!-- <dependency> -->
+			<!-- <groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+			<scope>test</scope> -->
+		<!-- </dependency> -->
 
-		<dependency>
+		<!-- <dependency>
 			<groupId>io.projectreactor</groupId>
 			<artifactId>reactor-test</artifactId>
 			<scope>test</scope>
-		</dependency>
+		</dependency> -->
 
     	<!-- OpenAPI/Swagger -->
 		<dependency>
@@ -91,9 +91,21 @@
 
 	<build>
 		<plugins>
+		  <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>

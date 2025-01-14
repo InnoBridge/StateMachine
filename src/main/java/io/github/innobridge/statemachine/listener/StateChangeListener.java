@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.event.AbstractMongoEventLis
 import org.springframework.data.mongodb.core.mapping.event.AfterSaveEvent;
 import org.springframework.stereotype.Component;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.mapping.event.MongoMappingEvent;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -30,8 +31,14 @@ public class StateChangeListener extends AbstractMongoEventListener<AbstractStat
         if (!repositoryConfig.isHistoryEnabled()) {
             return;
         }
+
+        String collectionName = ((MongoMappingEvent<?>) event).getCollectionName();
+        if ("History".equals(collectionName)) {
+            return; // Skip if this is already a history state
+        }
         
         AbstractState state = event.getSource();
+        
         // Create a copy for history without the _id field
         AbstractState historyCopy = new AbstractState() {
             @Override

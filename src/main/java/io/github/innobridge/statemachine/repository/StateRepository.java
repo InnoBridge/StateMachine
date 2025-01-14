@@ -6,7 +6,9 @@ import java.util.List;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface StateRepository extends MongoRepository<AbstractState, String> {
     // You can add custom query methods here if needed
     // For example:
