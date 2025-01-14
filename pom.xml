@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>io.github.innobridge</groupId>
 	<artifactId>statemachine</artifactId>
-	<version>0.0.1-SNAPSHOT-11</version>
+	<version>0.0.1-SNAPSHOT-12</version>
 	<name>Application</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
