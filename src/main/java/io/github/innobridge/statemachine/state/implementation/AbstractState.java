@@ -11,7 +11,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-@Document(collection = "States")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATES;
+
+@Document(collection = STATES)
 public abstract class AbstractState implements State {
     @Id
     private String id;

@@ -18,7 +18,9 @@ import io.github.innobridge.statemachine.state.definition.BlockingTransitionStat
 import io.github.innobridge.statemachine.state.definition.TerminalState;
 import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.implementation.AbstractState;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class StateMachineService {
 
@@ -34,14 +36,15 @@ public class StateMachineService {
     }
     
     public String createStateMachine(InitialState initialState, Optional<JsonNode> input, Optional<String> parentId) {
-        System.out.println("Initial state: " + initialState.getClass().getSimpleName());
+        log.info("Creating state machine with initial state: {}", initialState.getClass().getSimpleName());
         ExecutionThread thread = initialState.createThread(parentId.orElse(null));
         executionThreadRepository.save(thread); 
         initialState.setInstanceId(thread.getId());
         State nextState = initialState.processing(initialState.getTransitions(), input);
-        System.out.println("Next state: " + nextState.getClass().getSimpleName());
+        log.info("Transitioning to next state: {} for thread: {}", nextState.getClass().getSimpleName(), thread.getId());
         stateRepository.save((AbstractState) nextState);
         if (!nextState.isBlocking()) {
+            log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId()); 
         } 
         return thread.getId();
@@ -69,7 +72,7 @@ public class StateMachineService {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
-        System.out.println("Current state: " + currentState.getClass().getSimpleName());
+        log.info("Current state: {}", currentState.getClass().getSimpleName());
         if (currentState instanceof TerminalState) {
             return processTerminalState(thread);
         }  
@@ -90,6 +93,7 @@ public class StateMachineService {
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
         if (!nextState.isBlocking()) {
+            log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId()); 
         }
         return result;
@@ -136,12 +140,4 @@ public class StateMachineService {
         return states.get(0);
     }
 
-    private State getState(String instanceId, State state) {
-        return getState(instanceId, state.getClass().getName());
-    }
-
-    // JsonNode getState(String instanceId, State state) {
-    //     List<AbstractState> states = stateRepository.findByInstanceIdAndClass(instanceId, state.getClass().getSimpleName());
-    //     return states.get(0).toJson();
-    // }
 }

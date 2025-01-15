@@ -13,7 +13,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
-@Document(collection = "States")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATES;
+
+@Document(collection = STATES)
 public abstract class AbstractInitialState extends AbstractState implements InitialState {
 
     public Map<State, Function<State, State>> transitions;
