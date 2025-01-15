@@ -15,7 +15,9 @@ import io.github.innobridge.statemachine.service.StateMachineService;
 import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.definition.State;
 
-@Document(collection = "States")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATES;
+
+@Document(collection = STATES)
 public abstract class AbstractChildState extends AbstractState implements ChildState {
     private boolean dispatched = false;
     private boolean blocking = false;
@@ -36,7 +38,6 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
 
     @Override
     public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input, ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService) {
-        System.out.println("isDispatched: " + isDispatched());
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);

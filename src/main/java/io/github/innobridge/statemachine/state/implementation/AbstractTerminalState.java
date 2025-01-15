@@ -8,7 +8,9 @@ import java.util.function.Function;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document(collection = "States")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATES;
+
+@Document(collection = STATES)
 public abstract class AbstractTerminalState extends AbstractState implements TerminalState {
  
     @Override

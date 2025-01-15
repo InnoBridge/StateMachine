@@ -1,5 +1,7 @@
 package io.github.innobridge.statemachine.listener;
 
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.HISTORY;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -33,7 +35,7 @@ public class StateChangeListener extends AbstractMongoEventListener<AbstractStat
         }
 
         String collectionName = ((MongoMappingEvent<?>) event).getCollectionName();
-        if ("History".equals(collectionName)) {
+        if (HISTORY.equals(collectionName)) {
             return; // Skip if this is already a history state
         }
         
@@ -57,6 +59,6 @@ public class StateChangeListener extends AbstractMongoEventListener<AbstractStat
             }
         };
         historyCopy.setInstanceId(state.getInstanceId());
-        mongoTemplate.insert(historyCopy, "History");
+        mongoTemplate.insert(historyCopy, HISTORY);
     }
 }

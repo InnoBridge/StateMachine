@@ -7,7 +7,9 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
-@Document(collection = "StateMachineInstance")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATE_MACHINE_INSTANCE;
+
+@Document(collection = STATE_MACHINE_INSTANCE)
 @Data
 public class ExecutionThread {
 

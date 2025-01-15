@@ -11,7 +11,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-@Document(collection = "States")
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.STATES;
+
+@Document(collection = STATES)
 public abstract class AbstractBlockingTransitionState extends AbstractState implements BlockingTransitionState {
 
 
