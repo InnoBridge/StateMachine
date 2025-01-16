@@ -12,6 +12,8 @@ InnoBridge StateMachine (ISM) is a developer-friendly library for creating distr
 
 ## Architecture
 
+![StateMachine](https://github.com/user-attachments/assets/a91166ff-0854-45b2-8300-142a4401ebf6)
+
 ### State
 Our state machine consists of the State interface, which executes the action function when being processed.
 ```java
