@@ -18,4 +18,5 @@ public interface State {
    void setInstanceId(String instanceId);
    String getInstanceId();
    boolean isBlocking();
+   void setBlocking(boolean blocking);
 }

@@ -19,13 +19,14 @@ import static io.github.innobridge.statemachine.constants.StateMachineConstant.S
 
 @Document(collection = STATES)
 public abstract class AbstractChildState extends AbstractState implements ChildState {
-    private boolean dispatched = false;
-    private boolean blocking = false;
+    boolean dispatched;
 
-    private Set<String> childIds;
+    Set<String> childIds;
 
     public AbstractChildState() {
         super();
+        setBlocking(false);
+        setDispatched(false);
     }
     
     public boolean isDispatched() {
@@ -37,7 +38,10 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
     }
 
     @Override
-    public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input, ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService) {
+    public State processing(Map<String, Function<State, State>> transitions, 
+    Optional<JsonNode> input, 
+    ExecutionThreadRepository executionThreadRepository, 
+    StateMachineService stateMachineService) {
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);
@@ -58,7 +62,7 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
 
     private Set<String> dispatch(StateMachineService stateMachineService) {
         return registerChildInstances().stream()
-                .map(childInstance -> stateMachineService.createStateMachine(childInstance, Optional.empty(), Optional.of(instanceId)))
+                .map(childInstance -> stateMachineService.createStateMachine(childInstance, Optional.empty(), Optional.of(instanceId)).get("threadId").toString())
                 .collect(Collectors.toSet());
     }
     
@@ -70,7 +74,8 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
         this.childIds = childIds;
     }
     
-    private void setBlocking(boolean blocking) {
+    @Override
+    public void setBlocking(boolean blocking) {
         this.blocking = blocking;
     }
 

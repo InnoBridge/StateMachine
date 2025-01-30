@@ -1,6 +1,7 @@
 package io.github.innobridge.statemachine.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import io.github.innobridge.llmtools.models.response.ToolCallFunction;
 import io.github.innobridge.statemachine.publisher.RabbitMQProducer;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
 import io.github.innobridge.statemachine.repository.StateRepository;
@@ -19,6 +21,8 @@ import io.github.innobridge.statemachine.state.definition.TerminalState;
 import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.implementation.AbstractState;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.HashMap;
 
 @Slf4j
 @Service
@@ -35,7 +39,7 @@ public class StateMachineService {
     public StateMachineService() {
     }
     
-    public String createStateMachine(InitialState initialState, Optional<JsonNode> input, Optional<String> parentId) {
+    public Map<String, Object> createStateMachine(InitialState initialState, Optional<JsonNode> input, Optional<String> parentId) {
         log.info("Creating state machine with initial state: {}", initialState.getClass().getSimpleName());
         ExecutionThread thread = initialState.createThread(parentId.orElse(null));
         executionThreadRepository.save(thread); 
@@ -47,7 +51,23 @@ public class StateMachineService {
             log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId()); 
         } 
-        return thread.getId();
+        return Map.of("threadId", thread.getId());
+    }
+
+    public Map<String, Object> createToolsStateMachine(InitialState initialState, List<ToolCallFunction> tools, Optional<JsonNode> input, Optional<String> parentId) {
+        log.info("Creating state machine with initial state: {}", initialState.getClass().getSimpleName());
+        ExecutionThread thread = initialState.createThread(parentId.orElse(null));
+        thread.setTools(Optional.of(tools));
+        executionThreadRepository.save(thread); 
+        initialState.setInstanceId(thread.getId());
+        State nextState = initialState.processing(initialState.getTransitions(), input);
+        log.info("Transitioning to next state: {} for thread: {}", nextState.getClass().getSimpleName(), thread.getId());
+        stateRepository.save((AbstractState) nextState);
+        if (!nextState.isBlocking()) {
+            log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
+            rabbitMQProducer.sendMessage(thread.getId()); 
+        } 
+        return Map.of("threadId", thread.getId());
     }
 
     private InitialState createInitialState(String instanceType) {
@@ -56,7 +76,13 @@ public class StateMachineService {
             if (!InitialState.class.isAssignableFrom(stateClass)) {
                 throw new IllegalArgumentException("Class " + instanceType + " is not an InitialState");
             }
-            return (InitialState) stateClass.getDeclaredConstructor().newInstance();
+            try {
+                // First try no-args constructor
+                return (InitialState) stateClass.getDeclaredConstructor().newInstance();
+            } catch (NoSuchMethodException e) {
+                // If no-args constructor not found, try Map constructor
+                return (InitialState) stateClass.getDeclaredConstructor(Map.class).newInstance(new HashMap<>());
+            }
         } catch (ClassNotFoundException e) {
             throw new IllegalArgumentException("State class not found: " + instanceType, e);
         } catch (Exception e) {
@@ -64,24 +90,27 @@ public class StateMachineService {
         }
     }
 
-    public String processStateMachine(String instanceId) {
+    public Map<String, Object> processStateMachine(String instanceId) {
         return processStateMachine(instanceId, Optional.empty());
     }
 
-    public String processStateMachine(String instanceId, Optional<JsonNode> input) {
+    public Map<String, Object> processStateMachine(String instanceId, Optional<JsonNode> input) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
+        
         log.info("Current state: {}", currentState.getClass().getSimpleName());
         if (currentState instanceof TerminalState) {
-            return processTerminalState(thread);
+            return Map.of("threadId", processTerminalState(thread));
         }  
+        
         AbstractState nextState;
         if (currentState instanceof ChildState childState) {
             nextState = (AbstractState) childState.processing(initialState.getTransitions(), input, executionThreadRepository, this);
         } else {
             nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         }        
+        
         String result;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
@@ -92,11 +121,12 @@ public class StateMachineService {
             }
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
+        
         if (!nextState.isBlocking()) {
             log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
-            rabbitMQProducer.sendMessage(thread.getId()); 
+            rabbitMQProducer.sendMessage(thread.getId());
         }
-        return result;
+        return Map.of("threadId", result);
     }
 
     private String processBlockingTransitionState(

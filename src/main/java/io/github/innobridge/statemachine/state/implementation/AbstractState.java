@@ -17,7 +17,8 @@ import static io.github.innobridge.statemachine.constants.StateMachineConstant.S
 public abstract class AbstractState implements State {
     @Id
     private String id;
-    public String instanceId; 
+    public String instanceId;
+    boolean blocking;
 
     @Override
     public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input) {
@@ -52,5 +53,13 @@ public abstract class AbstractState implements State {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isBlocking() {
+        return blocking;
+    }
+
+    public void setBlocking(boolean blocking) {
+        this.blocking = blocking;
     }
 }
