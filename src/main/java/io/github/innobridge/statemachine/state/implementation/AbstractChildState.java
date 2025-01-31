@@ -41,7 +41,8 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
     public State processing(Map<String, Function<State, State>> transitions, 
     Optional<JsonNode> input, 
     ExecutionThreadRepository executionThreadRepository, 
-    StateMachineService stateMachineService) {
+    StateMachineService stateMachineService,
+    Optional<String> childId) {
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);
@@ -50,7 +51,12 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
             }
             return this;
         }
-        if (completedChildInstances(childIds, executionThreadRepository)) {
+        if (childId.isPresent()) {
+            Set<String> childIds = getChildIds();
+            childIds.remove(childId.get());
+            setChildIds(childIds);
+        }
+        if (completedChildInstances(childIds, executionThreadRepository) && childIds.isEmpty()) {
             setDispatched(false);
             setBlocking(false);
             State nextState = transition(transitions);
@@ -70,7 +76,11 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
         return !executionThreadRepository.existsByIdIn(childIds);
     }
 
-    private void setChildIds(Set<String> childIds) {
+    Set<String> getChildIds() {
+        return childIds;
+    }    
+
+    void setChildIds(Set<String> childIds) {
         this.childIds = childIds;
     }
     

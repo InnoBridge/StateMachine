@@ -93,8 +93,22 @@ public class StateMachineService {
     public Map<String, Object> processStateMachine(String instanceId) {
         return processStateMachine(instanceId, Optional.empty());
     }
-
+    
     public Map<String, Object> processStateMachine(String instanceId, Optional<JsonNode> input) {
+        return processStateMachine(instanceId, input, Optional.empty(), Optional.empty());
+    }
+
+    public Map<String, Object> processChildStateMachine(String parentId,
+    String childId,
+    Optional<Map<String, Object>> payload) {
+        return processStateMachine(parentId, Optional.empty(), Optional.of(childId), payload);
+    }
+
+    public Map<String, Object> processStateMachine(String instanceId, 
+    Optional<JsonNode> input, 
+    Optional<String> childId,
+    Optional<Map<String, Object>> payload
+    ) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
         State currentState = getState(instanceId, thread.getCurrentState());
@@ -106,7 +120,12 @@ public class StateMachineService {
         
         AbstractState nextState;
         if (currentState instanceof ChildState childState) {
-            nextState = (AbstractState) childState.processing(initialState.getTransitions(), input, executionThreadRepository, this);
+            nextState = (AbstractState) childState.processing(
+                initialState.getTransitions(), 
+                input,
+                executionThreadRepository, 
+                this,
+                childId);
         } else {
             nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         }        
@@ -153,7 +172,7 @@ public class StateMachineService {
         stateRepository.deleteByInstanceId(thread.getId());
         executionThreadRepository.deleteById(thread.getId());
         if (thread.getParentId().isPresent()) {
-            rabbitMQProducer.sendMessage(thread.getParentId().get());
+            rabbitMQProducer.sendChildMessage(thread.getParentId().get(), thread.getId());
         }
         return thread.getId();
     }

@@ -12,10 +12,10 @@ import io.github.innobridge.statemachine.service.StateMachineService;
 
 public interface ChildState extends State {
     State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input, 
-            ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService);
+            ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService, Optional<String> childId);
             
-    default State processing(Map<String, Function<State, State>> transitions, ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService) {
-        return processing(transitions, null, executionThreadRepository, stateMachineService);
+    default State processing(Map<String, Function<State, State>> transitions, ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService, Optional<String> childId) {
+        return processing(transitions, null, executionThreadRepository, stateMachineService, childId);
     }
     
     @Override
