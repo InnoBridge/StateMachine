@@ -1,15 +1,14 @@
 package io.github.innobridge.statemachine.state.implementation;
 
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.innobridge.llmtools.models.response.ToolCallFunction;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;
 import io.github.innobridge.statemachine.service.StateMachineService;
 import io.github.innobridge.statemachine.state.definition.ChildToolState;
-import io.github.innobridge.statemachine.state.definition.ConfigurableState;
 import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
@@ -37,7 +36,8 @@ public abstract class AbstractChildToolState extends AbstractChildState implemen
     Optional<JsonNode> input, 
     ExecutionThreadRepository executionThreadRepository, 
     StateMachineService stateMachineService,
-    Optional<String> childId) {
+    Optional<String> childId,
+    Optional<Map<String, Object>> payload) {
         if (!isDispatched()) {
             ExecutionThread thread = executionThreadRepository.findById(getInstanceId()).get();
             List<ToolCallFunction> tools = thread.getTools().get();
@@ -52,6 +52,9 @@ public abstract class AbstractChildToolState extends AbstractChildState implemen
             Set<String> childIds = getChildIds();
             childIds.remove(childId.get());
             setChildIds(childIds);
+            if (payload.isPresent()) {
+                action(payload.get());
+            }
         }
         if (completedChildInstances(childIds, executionThreadRepository) && childIds.isEmpty()) {
             setDispatched(false);

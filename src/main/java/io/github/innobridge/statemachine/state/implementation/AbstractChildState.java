@@ -42,7 +42,8 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
     Optional<JsonNode> input, 
     ExecutionThreadRepository executionThreadRepository, 
     StateMachineService stateMachineService,
-    Optional<String> childId) {
+    Optional<String> childId,
+    Optional<Map<String, Object>> payload) {
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);
@@ -55,6 +56,9 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
             Set<String> childIds = getChildIds();
             childIds.remove(childId.get());
             setChildIds(childIds);
+            if (payload.isPresent()) {
+                action(payload.get());
+            }
         }
         if (completedChildInstances(childIds, executionThreadRepository) && childIds.isEmpty()) {
             setDispatched(false);
@@ -92,5 +96,10 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
     @Override
     public boolean isBlocking() {
         return blocking;
+    }
+
+    @Override
+    public void action(Optional<JsonNode> input) {
+        throw new UnsupportedOperationException("ChildState must implement action");
     }
 }

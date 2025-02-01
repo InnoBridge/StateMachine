@@ -17,7 +17,10 @@ public class InitialMeal extends AbstractInitialState {
         Map<State, Function<State, State>> transitions = new HashMap<>();
         transitions.put(this, state -> new WhatYouAte());
         transitions.put(new WhatYouAte(), state -> new ChildMeal());
-        transitions.put(new ChildMeal(), state -> new TerminalMeal());
+        transitions.put(new ChildMeal(), state -> {
+            ChildMeal childMeal = (ChildMeal) state;
+            return new TerminalMeal(childMeal.getBreakfast(), childMeal.getLunch(), childMeal.getDinner());
+        });
         this.transitions = transitions;
     }
 

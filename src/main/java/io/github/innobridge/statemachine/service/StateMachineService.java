@@ -99,15 +99,15 @@ public class StateMachineService {
     }
 
     public Map<String, Object> processChildStateMachine(String parentId,
-    String childId,
-    Optional<Map<String, Object>> payload) {
+        String childId,
+        Optional<Map<String, Object>> payload) {
         return processStateMachine(parentId, Optional.empty(), Optional.of(childId), payload);
     }
 
     public Map<String, Object> processStateMachine(String instanceId, 
-    Optional<JsonNode> input, 
-    Optional<String> childId,
-    Optional<Map<String, Object>> payload
+        Optional<JsonNode> input, 
+        Optional<String> childId,
+        Optional<Map<String, Object>> payload
     ) {
         ExecutionThread thread = getExecutionThread(instanceId);
         InitialState initialState = createInitialState(thread.getInstanceType());
@@ -115,8 +115,10 @@ public class StateMachineService {
         
         log.info("Current state: {}", currentState.getClass().getSimpleName());
         if (currentState instanceof TerminalState) {
-            return Map.of("threadId", processTerminalState(thread));
-        }  
+            currentState.action(Optional.empty());
+            return Map.of("threadId", processTerminalState(thread, 
+            (TerminalState) currentState));
+        }          
         
         AbstractState nextState;
         if (currentState instanceof ChildState childState) {
@@ -125,7 +127,8 @@ public class StateMachineService {
                 input,
                 executionThreadRepository, 
                 this,
-                childId);
+                childId,
+                payload);
         } else {
             nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         }        
@@ -168,11 +171,11 @@ public class StateMachineService {
         return thread.getId();
     }
 
-    private String processTerminalState(ExecutionThread thread) {
+    private String processTerminalState(ExecutionThread thread, TerminalState terminalState) {
         stateRepository.deleteByInstanceId(thread.getId());
         executionThreadRepository.deleteById(thread.getId());
         if (thread.getParentId().isPresent()) {
-            rabbitMQProducer.sendChildMessage(thread.getParentId().get(), thread.getId());
+            rabbitMQProducer.sendChildMessage(thread.getParentId().get(), thread.getId(), terminalState.getPayload().orElse(null));
         }
         return thread.getId();
     }
