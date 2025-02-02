@@ -17,6 +17,7 @@ import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
+import io.github.innobridge.statemachine.state.definition.ChatResponseState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
 import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.implementation.AbstractState;
@@ -30,6 +31,7 @@ public class StateMachineService {
 
     @Autowired
     private ExecutionThreadRepository executionThreadRepository;
+
     @Autowired
     private StateRepository stateRepository;
     
@@ -133,13 +135,13 @@ public class StateMachineService {
             nextState = (AbstractState) currentState.processing(initialState.getTransitions(), input);
         }        
         
-        String result;
+        String threadId;
         switch (currentState) {
             case BlockingTransitionState blockingState -> {
-                result = processBlockingTransitionState(nextState, thread);
+                threadId = processBlockingTransitionState(nextState, thread);
             }
             case ChildState childState -> {
-                result = processChildState(nextState, thread);
+                threadId = processChildState(nextState, thread);
             }
             default -> throw new IllegalStateException("Unexpected state type: " + currentState.getClass().getSimpleName());
         }
@@ -148,7 +150,8 @@ public class StateMachineService {
             log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId());
         }
-        return Map.of("threadId", result);
+        Map<String, Object> result = Map.of("threadId", thread.getId());
+        return result;
     }
 
     private String processBlockingTransitionState(
@@ -184,7 +187,7 @@ public class StateMachineService {
         return executionThreadRepository.findById(instanceId).get();
     }
 
-    private State getState(String instanceId, String stateClassName) {
+    State getState(String instanceId, String stateClassName) {
         List<AbstractState> states = stateRepository.findByInstanceIdAndClass(instanceId, stateClassName);
         if (states.isEmpty()) {
             throw new IllegalStateException("No state found for instanceId " + instanceId);
