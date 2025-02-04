@@ -19,13 +19,14 @@ import static io.github.innobridge.statemachine.constants.StateMachineConstant.S
 
 @Document(collection = STATES)
 public abstract class AbstractChildState extends AbstractState implements ChildState {
-    private boolean dispatched = false;
-    private boolean blocking = false;
+    boolean dispatched;
 
-    private Set<String> childIds;
+    Set<String> childIds;
 
     public AbstractChildState() {
         super();
+        setBlocking(false);
+        setDispatched(false);
     }
     
     public boolean isDispatched() {
@@ -37,7 +38,12 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
     }
 
     @Override
-    public State processing(Map<String, Function<State, State>> transitions, Optional<JsonNode> input, ExecutionThreadRepository executionThreadRepository, StateMachineService stateMachineService) {
+    public State processing(Map<String, Function<State, State>> transitions, 
+    Optional<JsonNode> input, 
+    ExecutionThreadRepository executionThreadRepository, 
+    StateMachineService stateMachineService,
+    Optional<String> childId,
+    Optional<Map<String, Object>> payload) {
         if (!isDispatched()) {
             setChildIds(dispatch(stateMachineService));
             setDispatched(true);
@@ -46,7 +52,15 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
             }
             return this;
         }
-        if (completedChildInstances(childIds, executionThreadRepository)) {
+        if (childId.isPresent()) {
+            Set<String> childIds = getChildIds();
+            childIds.remove(childId.get());
+            setChildIds(childIds);
+            if (payload.isPresent()) {
+                action(payload.get());
+            }
+        }
+        if (completedChildInstances(childIds, executionThreadRepository) && childIds.isEmpty()) {
             setDispatched(false);
             setBlocking(false);
             State nextState = transition(transitions);
@@ -58,7 +72,7 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
 
     private Set<String> dispatch(StateMachineService stateMachineService) {
         return registerChildInstances().stream()
-                .map(childInstance -> stateMachineService.createStateMachine(childInstance, Optional.empty(), Optional.of(instanceId)))
+                .map(childInstance -> stateMachineService.createStateMachine(childInstance, Optional.empty(), Optional.of(instanceId)).get("threadId").toString())
                 .collect(Collectors.toSet());
     }
     
@@ -66,16 +80,26 @@ public abstract class AbstractChildState extends AbstractState implements ChildS
         return !executionThreadRepository.existsByIdIn(childIds);
     }
 
-    private void setChildIds(Set<String> childIds) {
+    Set<String> getChildIds() {
+        return childIds;
+    }    
+
+    void setChildIds(Set<String> childIds) {
         this.childIds = childIds;
     }
     
-    private void setBlocking(boolean blocking) {
+    @Override
+    public void setBlocking(boolean blocking) {
         this.blocking = blocking;
     }
 
     @Override
     public boolean isBlocking() {
         return blocking;
+    }
+
+    @Override
+    public void action(Optional<JsonNode> input) {
+        throw new UnsupportedOperationException("ChildState must implement action");
     }
 }

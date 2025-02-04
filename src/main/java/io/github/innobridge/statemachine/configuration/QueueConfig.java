@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Configuration;
 
 import static io.github.innobridge.statemachine.constants.StateMachineConstant.EXCHANGE_NAME;
 import static io.github.innobridge.statemachine.constants.StateMachineConstant.QUEUE_NAME;
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.CHILD_QUEUE_NAME;
 import static io.github.innobridge.statemachine.constants.StateMachineConstant.ROUTING_KEY;
+import static io.github.innobridge.statemachine.constants.StateMachineConstant.CHILD_ROUTING_KEY;
 
 @Configuration
 public class QueueConfig {
@@ -49,6 +51,11 @@ public class QueueConfig {
     }
 
     @Bean
+    public Queue childStateMachineQueue() {
+        return new Queue(CHILD_QUEUE_NAME, true);
+    }
+
+    @Bean
     public TopicExchange stateMachineExchange() {
         return new TopicExchange(EXCHANGE_NAME);
     }
@@ -59,5 +66,13 @@ public class QueueConfig {
                 .bind(stateMachineQueue())
                 .to(stateMachineExchange())
                 .with(ROUTING_KEY);
+    }
+
+    @Bean
+    public Binding childStateMachineBinding() {
+        return BindingBuilder
+                .bind(childStateMachineQueue())
+                .to(stateMachineExchange())
+                .with(CHILD_ROUTING_KEY);
     }
 }
