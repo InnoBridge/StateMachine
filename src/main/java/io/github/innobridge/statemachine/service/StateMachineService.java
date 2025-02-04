@@ -17,7 +17,6 @@ import io.github.innobridge.statemachine.state.definition.ExecutionThread;
 import io.github.innobridge.statemachine.state.definition.InitialState;
 import io.github.innobridge.statemachine.state.definition.State;
 import io.github.innobridge.statemachine.state.definition.BlockingTransitionState;
-import io.github.innobridge.statemachine.state.definition.ChatResponseState;
 import io.github.innobridge.statemachine.state.definition.TerminalState;
 import io.github.innobridge.statemachine.state.definition.ChildState;
 import io.github.innobridge.statemachine.state.implementation.AbstractState;
@@ -66,7 +65,6 @@ public class StateMachineService {
         log.info("Transitioning to next state: {} for thread: {}", nextState.getClass().getSimpleName(), thread.getId());
         stateRepository.save((AbstractState) nextState);
         if (!nextState.isBlocking()) {
-            log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId()); 
         } 
         return Map.of("threadId", thread.getId());
@@ -147,7 +145,6 @@ public class StateMachineService {
         }
         
         if (!nextState.isBlocking()) {
-            log.debug("State is non-blocking, sending message to queue for thread: {}", thread.getId());
             rabbitMQProducer.sendMessage(thread.getId());
         }
         Map<String, Object> result = Map.of("threadId", thread.getId());

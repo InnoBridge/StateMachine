@@ -3,7 +3,6 @@ package io.github.innobridge.statemachine.state.implementation;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.github.innobridge.llmtools.models.response.ToolCallFunction;
 import io.github.innobridge.statemachine.repository.ExecutionThreadRepository;

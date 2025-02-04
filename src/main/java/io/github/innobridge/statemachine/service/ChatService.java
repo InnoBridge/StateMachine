@@ -53,7 +53,6 @@ public class ChatService {
 
         ChatResponseState chatResponseState = (ChatResponseState) currentState;
         List<String> responses = chatResponseState.getResponses();
-        System.out.println("result: " + responses);
 
         stateMachineService.processStateMachine(
             threadId, 
